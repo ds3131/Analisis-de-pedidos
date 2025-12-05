@@ -1,0 +1,5 @@
+{
+  "name": "Análisis de Pedidos por facturar",
+  "description": "An analytical tool to process Excel sales reports, filtering by group and status to generate pivot tables for order counts, net amounts, and product breakdowns.",
+  "requestFramePermissions": []
+}
