@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { PivotData, ReportResult, ReportType } from '../types';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface PivotTableProps {
   report: ReportResult;
@@ -7,9 +8,19 @@ interface PivotTableProps {
   title: string;
 }
 
+type SortDirection = 'asc' | 'desc';
+
+interface SortConfig {
+  key: string; // '__key__' | '__label__' | '__total__' | or specific sales rep name
+  direction: SortDirection;
+}
+
 export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) => {
   const isCurrency = type === ReportType.NET_AMOUNT;
   const isProductList = type === ReportType.PRODUCT_LIST;
+
+  // State for sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
 
   const formatValue = (val: number) => {
     if (val === 0 || val === undefined) return '-'; 
@@ -24,12 +35,66 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
     colTotals[col] = report.data.reduce((sum, row) => sum + (row.values[col] || 0), 0);
   });
 
-  // Standard border styling for grid cells
-  const cellBorder = "border-r border-b border-gray-300";
+  const handleSort = (key: string) => {
+    let direction: SortDirection = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedData = useMemo(() => {
+    let data = [...report.data];
+    if (!sortConfig) return data;
+
+    return data.sort((a, b) => {
+      let valA: any;
+      let valB: any;
+
+      // Extract values based on what we are sorting by
+      if (sortConfig.key === '__key__') {
+        valA = a.rowKey;
+        valB = b.rowKey;
+      } else if (sortConfig.key === '__label__') {
+        valA = a.rowLabel || '';
+        valB = b.rowLabel || '';
+      } else if (sortConfig.key === '__total__') {
+        valA = a.total;
+        valB = b.total;
+      } else {
+        // Sorting by a specific sales rep column
+        valA = a.values[sortConfig.key] || 0;
+        valB = b.values[sortConfig.key] || 0;
+      }
+
+      if (valA < valB) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (valA > valB) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [report.data, sortConfig]);
+
+  // Helper to render sort icon
+  const getSortIcon = (columnKey: string) => {
+    if (!sortConfig || sortConfig.key !== columnKey) {
+      return <ArrowUpDown className="w-3 h-3 text-gray-300 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <ArrowUp className="w-3 h-3 text-black ml-1" />
+      : <ArrowDown className="w-3 h-3 text-black ml-1" />;
+  };
+
+  // Common styling
+  const cellBorder = "border-r border-b border-black";
+  const headerBorder = "border-r border-black";
+  const headerBaseClass = `py-3 px-4 font-bold border-b-2 border-black ${headerBorder} uppercase text-xs tracking-wider cursor-pointer select-none transition-colors hover:bg-gray-200 flex items-center justify-between group`;
 
   return (
-    <div className="bg-white rounded-none border border-gray-300 overflow-hidden flex flex-col h-full shadow-none">
-      <div className="px-6 py-4 border-b border-black bg-white flex justify-between items-center">
+    <div className="bg-white rounded-none border border-black overflow-hidden flex flex-col h-full shadow-none">
+      <div className="px-6 py-4 border-b-2 border-black bg-white flex justify-between items-center">
         <h3 className="font-bold text-black uppercase tracking-tight text-sm">
           {title}
         </h3>
@@ -45,33 +110,70 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
               {/* Headers */}
               {isProductList ? (
                 <>
-                  <th className="py-3 px-4 font-bold border-b-2 border-black border-r border-gray-300 min-w-[120px] bg-gray-50 sticky left-0 z-20 uppercase text-xs tracking-wider">Código</th>
-                  <th className="py-3 px-4 font-bold border-b-2 border-black border-r border-gray-300 min-w-[300px] bg-gray-50 uppercase text-xs tracking-wider">Descripción</th>
+                  <th 
+                    className={`${headerBaseClass} min-w-[120px] bg-gray-50 sticky left-0 z-20`}
+                    onClick={() => handleSort('__key__')}
+                  >
+                    <span>Código</span>
+                    {getSortIcon('__key__')}
+                  </th>
+                  <th 
+                    className={`${headerBaseClass} min-w-[300px] bg-gray-50`}
+                    onClick={() => handleSort('__label__')}
+                  >
+                    <span>Descripción</span>
+                    {getSortIcon('__label__')}
+                  </th>
                   {/* Total moved here for Product List */}
-                  <th className="py-3 px-4 font-bold border-b-2 border-black border-r border-gray-300 min-w-[100px] bg-gray-100 text-black text-right uppercase text-xs tracking-wider">
-                    Total
+                  <th 
+                    className={`${headerBaseClass} min-w-[100px] bg-gray-100 text-black text-right justify-end`}
+                    onClick={() => handleSort('__total__')}
+                  >
+                    <div className="flex items-center gap-1">
+                       <span>Total</span>
+                       {getSortIcon('__total__')}
+                    </div>
                   </th>
                 </>
               ) : (
-                <th className="py-3 px-4 font-bold border-b-2 border-black border-r border-gray-300 min-w-[200px] bg-gray-50 sticky left-0 z-20 uppercase text-xs tracking-wider">Condado</th>
+                <th 
+                  className={`${headerBaseClass} min-w-[200px] bg-gray-50 sticky left-0 z-20`}
+                  onClick={() => handleSort('__label__')}
+                >
+                  <span>Condado</span>
+                  {getSortIcon('__label__')}
+                </th>
               )}
 
               {report.columns.map(col => (
-                <th key={col} className="py-3 px-4 font-bold border-b-2 border-black border-r border-gray-300 min-w-[150px] whitespace-nowrap text-right uppercase text-xs tracking-wider">
-                  {col}
+                <th 
+                  key={col} 
+                  className={`${headerBaseClass} min-w-[150px] whitespace-nowrap text-right justify-end`}
+                  onClick={() => handleSort(col)}
+                >
+                  <div className="flex items-center gap-1">
+                    <span>{col}</span>
+                    {getSortIcon(col)}
+                  </div>
                 </th>
               ))}
               
               {/* Total at end for non-product lists */}
               {!isProductList && (
-                <th className="py-3 px-4 font-bold border-b-2 border-black min-w-[120px] text-right bg-gray-100 text-black sticky right-0 z-20 uppercase text-xs tracking-wider">
-                  Total
+                <th 
+                  className={`${headerBaseClass} min-w-[120px] text-right bg-gray-100 text-black sticky right-0 z-20 justify-end`}
+                  onClick={() => handleSort('__total__')}
+                >
+                  <div className="flex items-center gap-1">
+                    <span>Total</span>
+                    {getSortIcon('__total__')}
+                  </div>
                 </th>
               )}
             </tr>
           </thead>
           <tbody className="">
-            {report.data.map((row, idx) => (
+            {sortedData.map((row, idx) => (
               <tr key={idx} className="hover:bg-gray-50 transition-colors group">
                 {/* Row Keys */}
                 {isProductList ? (
@@ -102,7 +204,7 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
 
                 {/* Row Total at end for non-product lists */}
                 {!isProductList && (
-                  <td className="py-2 px-4 border-b border-gray-300 border-l border-gray-300 font-bold text-right text-black bg-gray-50 sticky right-0 z-10 font-mono text-xs tabular-nums">
+                  <td className="py-2 px-4 border-b border-black border-l border-black font-bold text-right text-black bg-gray-50 sticky right-0 z-10 font-mono text-xs tabular-nums">
                     {formatValue(row.total)}
                   </td>
                 )}
@@ -115,27 +217,27 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
             <tr>
               <td 
                 colSpan={isProductList ? 2 : 1} 
-                className="py-3 px-4 border-r border-gray-300 sticky left-0 bg-white z-20 uppercase text-xs tracking-wider"
+                className={`py-3 px-4 ${headerBorder} sticky left-0 bg-white z-20 uppercase text-xs tracking-wider`}
               >
                 Totales
               </td>
 
                {/* Grand Total here for Product List */}
                {isProductList && (
-                <td className="py-3 px-4 text-right border-r border-gray-300 bg-gray-100 text-black font-mono text-xs tabular-nums">
+                <td className={`py-3 px-4 text-right ${headerBorder} bg-gray-100 text-black font-mono text-xs tabular-nums`}>
                   {formatValue(report.grandTotal)}
                 </td>
               )}
 
               {report.columns.map(col => (
-                <td key={col} className="py-3 px-4 border-r border-gray-300 text-right font-mono text-xs tabular-nums">
+                <td key={col} className={`py-3 px-4 ${headerBorder} text-right font-mono text-xs tabular-nums`}>
                   {formatValue(colTotals[col])}
                 </td>
               ))}
 
               {/* Grand Total at end for non-product lists */}
               {!isProductList && (
-                <td className="py-3 px-4 text-right border-l border-gray-300 bg-gray-100 text-black sticky right-0 z-20 font-mono text-xs tabular-nums">
+                <td className="py-3 px-4 text-right border-l border-black bg-gray-100 text-black sticky right-0 z-20 font-mono text-xs tabular-nums">
                   {formatValue(report.grandTotal)}
                 </td>
               )}
