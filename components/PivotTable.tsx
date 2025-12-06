@@ -1,6 +1,5 @@
 import React from 'react';
 import { PivotData, ReportResult, ReportType } from '../types';
-import clsx from 'clsx';
 
 interface PivotTableProps {
   report: ReportResult;
@@ -12,84 +11,82 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
   const isCurrency = type === ReportType.NET_AMOUNT;
 
   const formatValue = (val: number) => {
-    if (val === 0 || val === undefined) return '0'; // Or '-' for clean look
+    if (val === 0 || val === undefined) return '-'; 
     if (isCurrency) {
       return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(val);
     }
     return new Intl.NumberFormat('es-PE').format(val);
   };
 
-  // Calculate column totals for footer
   const colTotals: { [key: string]: number } = {};
   report.columns.forEach(col => {
     colTotals[col] = report.data.reduce((sum, row) => sum + (row.values[col] || 0), 0);
   });
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
-      <div className="p-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-        <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+    <div className="bg-white rounded-none border border-gray-300 overflow-hidden flex flex-col h-full shadow-none">
+      <div className="px-6 py-4 border-b border-black bg-white flex justify-between items-center">
+        <h3 className="font-bold text-black uppercase tracking-tight text-sm">
           {title}
         </h3>
-        <span className="text-xs font-medium px-2 py-1 bg-white border border-slate-200 rounded text-slate-500">
-          {report.data.length} filas
+        <span className="text-xs font-mono text-gray-500">
+          REGISTROS: {report.data.length}
         </span>
       </div>
       
       <div className="overflow-auto flex-1 custom-scrollbar">
         <table className="w-full text-sm text-left border-collapse">
-          <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm text-slate-700">
+          <thead className="bg-gray-50 sticky top-0 z-10 text-black">
             <tr>
-              {/* Report specific headers */}
+              {/* Headers */}
               {type === ReportType.PRODUCT_LIST ? (
                 <>
-                  <th className="py-3 px-4 font-semibold border-b border-r border-slate-200 min-w-[120px] bg-slate-50 sticky left-0 z-20">No. Artículo</th>
-                  <th className="py-3 px-4 font-semibold border-b border-r border-slate-200 min-w-[300px]">Descripción</th>
+                  <th className="py-3 px-4 font-bold border-b-2 border-black min-w-[120px] bg-gray-50 sticky left-0 z-20 uppercase text-xs tracking-wider">Código</th>
+                  <th className="py-3 px-4 font-bold border-b-2 border-black min-w-[300px] bg-gray-50 uppercase text-xs tracking-wider">Descripción</th>
                 </>
               ) : (
-                <th className="py-3 px-4 font-semibold border-b border-r border-slate-200 min-w-[200px] bg-slate-50 sticky left-0 z-20">Condado</th>
+                <th className="py-3 px-4 font-bold border-b-2 border-black min-w-[200px] bg-gray-50 sticky left-0 z-20 uppercase text-xs tracking-wider">Condado</th>
               )}
 
-              {/* Dynamic Employee Columns */}
               {report.columns.map(col => (
-                <th key={col} className="py-3 px-4 font-semibold border-b border-slate-200 min-w-[150px] whitespace-nowrap text-right">
+                <th key={col} className="py-3 px-4 font-bold border-b-2 border-black min-w-[150px] whitespace-nowrap text-right uppercase text-xs tracking-wider">
                   {col}
                 </th>
               ))}
               
-              <th className="py-3 px-4 font-bold border-b border-l border-slate-200 min-w-[120px] text-right bg-emerald-50 text-emerald-800 sticky right-0 z-20">
-                Total General
+              <th className="py-3 px-4 font-bold border-b-2 border-black min-w-[120px] text-right bg-gray-100 text-black sticky right-0 z-20 uppercase text-xs tracking-wider">
+                Total
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-gray-100">
             {report.data.map((row, idx) => (
-              <tr key={idx} className="hover:bg-slate-50 transition-colors">
+              <tr key={idx} className="hover:bg-gray-50 transition-colors group">
                 {/* Row Keys */}
                 {type === ReportType.PRODUCT_LIST ? (
                   <>
-                    <td className="py-2 px-4 border-r border-slate-200 font-medium text-slate-700 sticky left-0 bg-white hover:bg-slate-50 z-10">
+                    <td className="py-2 px-4 border-r border-gray-100 font-mono text-xs text-gray-900 sticky left-0 bg-white group-hover:bg-gray-50 z-10">
                       {row.rowKey}
                     </td>
-                    <td className="py-2 px-4 border-r border-slate-200 text-slate-600 truncate max-w-xs" title={row.rowLabel}>
+                    <td className="py-2 px-4 border-r border-gray-100 text-gray-800 text-xs truncate max-w-xs" title={row.rowLabel}>
                       {row.rowLabel}
                     </td>
                   </>
                 ) : (
-                  <td className="py-2 px-4 border-r border-slate-200 font-medium text-slate-700 sticky left-0 bg-white hover:bg-slate-50 z-10">
+                  <td className="py-2 px-4 border-r border-gray-100 font-medium text-gray-900 sticky left-0 bg-white group-hover:bg-gray-50 z-10 text-xs uppercase">
                     {row.rowLabel}
                   </td>
                 )}
 
                 {/* Values */}
                 {report.columns.map(col => (
-                  <td key={col} className="py-2 px-4 text-right text-slate-600 tabular-nums">
+                  <td key={col} className="py-2 px-4 text-right text-gray-600 font-mono text-xs tabular-nums">
                     {formatValue(row.values[col])}
                   </td>
                 ))}
 
                 {/* Row Total */}
-                <td className="py-2 px-4 border-l border-slate-200 font-bold text-right text-emerald-700 bg-emerald-50/30 sticky right-0 z-10 tabular-nums">
+                <td className="py-2 px-4 border-l border-gray-200 font-bold text-right text-black bg-gray-50 sticky right-0 z-10 font-mono text-xs tabular-nums">
                   {formatValue(row.total)}
                 </td>
               </tr>
@@ -97,20 +94,20 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
           </tbody>
           
           {/* Footer Totals */}
-          <tfoot className="bg-slate-50 sticky bottom-0 z-10 font-bold border-t-2 border-slate-200 text-slate-800 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+          <tfoot className="bg-white sticky bottom-0 z-10 font-bold border-t-2 border-black text-black">
             <tr>
               <td 
                 colSpan={type === ReportType.PRODUCT_LIST ? 2 : 1} 
-                className="py-3 px-4 border-r border-slate-200 sticky left-0 bg-slate-50 z-20"
+                className="py-3 px-4 border-r border-gray-200 sticky left-0 bg-white z-20 uppercase text-xs tracking-wider"
               >
                 Totales
               </td>
               {report.columns.map(col => (
-                <td key={col} className="py-3 px-4 text-right tabular-nums">
+                <td key={col} className="py-3 px-4 text-right font-mono text-xs tabular-nums">
                   {formatValue(colTotals[col])}
                 </td>
               ))}
-              <td className="py-3 px-4 text-right border-l border-slate-200 bg-emerald-100 text-emerald-900 sticky right-0 z-20 tabular-nums">
+              <td className="py-3 px-4 text-right border-l border-gray-200 bg-gray-100 text-black sticky right-0 z-20 font-mono text-xs tabular-nums">
                 {formatValue(report.grandTotal)}
               </td>
             </tr>

@@ -3,7 +3,7 @@ import { FileUpload } from './components/FileUpload';
 import { PivotTable } from './components/PivotTable';
 import { parseExcel, generateReport } from './utils/dataProcessor';
 import { ProcessedRow, ReportType } from './types';
-import { BarChart3, Calculator, ShoppingCart, Download, ShieldCheck } from 'lucide-react';
+import { BarChart3, Calculator, ShoppingCart, ShieldCheck, FileSpreadsheet } from 'lucide-react';
 
 function App() {
   const [rawData, setRawData] = useState<ProcessedRow[] | null>(null);
@@ -34,34 +34,32 @@ function App() {
   }, [rawData, activeTab]);
 
   const tabs = [
-    { id: ReportType.ORDER_COUNT, label: 'Cantidad de Pedidos', icon: BarChart3, desc: 'Conteo distintivo por Nro Documento' },
-    { id: ReportType.NET_AMOUNT, label: 'Montos Netos', icon: Calculator, desc: 'Suma Total / 1.18' },
-    { id: ReportType.PRODUCT_LIST, label: 'Lista de Productos', icon: ShoppingCart, desc: 'Detalle por Artículo y Vendedor' },
+    { id: ReportType.ORDER_COUNT, label: 'Cantidad de Pedidos', icon: BarChart3, desc: 'Conteo distintivo' },
+    { id: ReportType.NET_AMOUNT, label: 'Montos Netos', icon: Calculator, desc: 'Total / 1.18' },
+    { id: ReportType.PRODUCT_LIST, label: 'Lista de Productos', icon: ShoppingCart, desc: 'Detalle Items' },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-12">
+    <div className="min-h-screen bg-white text-black pb-12">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="bg-emerald-600 text-white p-1.5 rounded-lg">
-                <BarChart3 className="w-5 h-5" />
-              </div>
-              <h1 className="text-xl font-bold text-slate-800 tracking-tight">Análisis de Pedidos por facturar</h1>
+          <div className="flex items-center gap-3">
+            <div className="bg-black text-white p-1.5 rounded">
+              <BarChart3 className="w-5 h-5" />
             </div>
-            
-            {/* Privacy Badge */}
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-medium border border-emerald-100">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Privacidad: Procesamiento Local</span>
-            </div>
+            <h1 className="text-lg font-bold text-black tracking-tight uppercase">Análisis de Pedidos</h1>
+          </div>
+          
+          {/* Privacy Badge - Monochrome */}
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-gray-50 text-gray-600 rounded-full text-xs font-medium border border-gray-200">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Procesamiento Local</span>
           </div>
 
           {rawData && (
-             <div className="text-sm text-slate-500">
-                Registros cargados: <span className="font-semibold text-slate-800">{rawData.length}</span>
+             <div className="text-xs font-mono text-gray-500 border-l border-gray-200 pl-4">
+                FILAS: <span className="font-bold text-black">{rawData.length}</span>
              </div>
           )}
         </div>
@@ -72,10 +70,11 @@ function App() {
         {/* Upload Section */}
         {!rawData && (
           <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="text-center mb-8 max-w-lg">
-              <h2 className="text-3xl font-bold text-slate-900 mb-3">Analítica de Pedidos por facturar</h2>
-              <p className="text-slate-500 text-lg">
-                Sube tu reporte de Excel para generar automáticamente las tablas de pedidos, montos netos y desglose de productos.
+            <div className="text-center mb-10 max-w-lg">
+              <h2 className="text-3xl font-bold text-black mb-4 tracking-tight">Cargar Reporte</h2>
+              <p className="text-gray-600 text-lg font-light">
+                Sistema de análisis de pedidos por facturar. 
+                <br />Sube tu archivo Excel para generar el reporte financiero.
               </p>
             </div>
             <FileUpload onFileUpload={handleFileUpload} isLoading={loading} error={error} />
@@ -87,9 +86,9 @@ function App() {
           <div className="animate-in fade-in zoom-in-95 duration-300 space-y-6">
             
             {/* Action Bar */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-               {/* Tabs */}
-              <div className="flex p-1 space-x-1 bg-white border border-slate-200 rounded-xl shadow-sm">
+            <div className="flex flex-col sm:flex-row justify-between items-end border-b border-gray-200 pb-1 gap-4">
+               {/* Professional Tabs */}
+              <div className="flex space-x-6">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.id;
@@ -98,17 +97,15 @@ function App() {
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
                       className={`
-                        flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
+                        group flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 border-b-2
                         ${isActive 
-                          ? 'bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-200' 
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                          ? 'border-black text-black' 
+                          : 'border-transparent text-gray-500 hover:text-black hover:border-gray-300'
                         }
                       `}
                     >
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-600' : 'text-slate-400'}`} />
-                      <div className="flex flex-col items-start leading-tight">
-                        <span>{tab.label}</span>
-                      </div>
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-black' : 'text-gray-400 group-hover:text-gray-600'}`} />
+                      <span>{tab.label}</span>
                     </button>
                   );
                 })}
@@ -116,9 +113,9 @@ function App() {
 
               <button 
                 onClick={() => setRawData(null)}
-                className="text-sm text-slate-500 hover:text-red-600 font-medium px-4 py-2 hover:bg-red-50 rounded-lg transition-colors"
+                className="mb-2 text-sm text-gray-500 hover:text-black font-medium px-3 py-1.5 border border-gray-200 hover:border-black rounded transition-all"
               >
-                Cargar nuevo archivo
+                Cargar otro archivo
               </button>
             </div>
 
@@ -133,19 +130,19 @@ function App() {
               )}
             </div>
 
-            {/* Instructions / Footer */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-500 mt-8">
-              <div className="bg-white p-4 rounded-lg border border-slate-200">
-                <strong className="block text-slate-700 mb-1">Filtro de Estado</strong>
-                Se descartan documentos con estado "Cerrado".
+            {/* Instructions / Footer - Corporate Style */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-gray-600 mt-8">
+              <div className="bg-gray-50 p-4 border border-gray-100">
+                <strong className="block text-black uppercase tracking-wider mb-1 text-[10px]">Filtro de Estado</strong>
+                Exclusión automática de documentos marcados como "Cerrado".
               </div>
-              <div className="bg-white p-4 rounded-lg border border-slate-200">
-                <strong className="block text-slate-700 mb-1">Filtro de Grupo</strong>
-                Solo se mantienen: MAYORISTAS B, C, D, E.
+              <div className="bg-gray-50 p-4 border border-gray-100">
+                <strong className="block text-black uppercase tracking-wider mb-1 text-[10px]">Segmentación</strong>
+                Grupos permitidos: Mayoristas B, C, D, E.
               </div>
-              <div className="bg-white p-4 rounded-lg border border-slate-200">
-                <strong className="block text-slate-700 mb-1">Cálculos</strong>
-                Monto Neto = Total / 1.18. Pedidos = Conteo Distinto.
+              <div className="bg-gray-50 p-4 border border-gray-100">
+                <strong className="block text-black uppercase tracking-wider mb-1 text-[10px]">Fórmulas</strong>
+                Monto Neto calculado dividiendo el Total entre 1.18.
               </div>
             </div>
           </div>
