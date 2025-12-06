@@ -103,15 +103,7 @@ export const generateReport = (rows: ProcessedRow[], type: ReportType): ReportRe
     const entry = rowMap.get(rowKey)!;
 
     if (type === ReportType.ORDER_COUNT) {
-      // DISTINCT COUNT of DocID
-      // This is tricky because we iterate row by row. 
-      // We need to store sets to count distinct later, or check distinctness now.
-      // To properly do a pivot table with distinct counts per cell:
-      // We need an intermediate structure: { rowKey: { colKey: Set<DocId> } }
-      // The current loop structure simplifies this if we handle values as Sets first then convert to size.
-      // Let's adjust strategy inside the value map.
-      // We will store current value. But for Order Count, we can't just increment.
-      // See Step 2b below.
+      // DISTINCT COUNT of DocID handled in step 2b
     } else if (type === ReportType.NET_AMOUNT) {
       // Sum Total / 1.18
       const netVal = row.totalAmount / 1.18;
@@ -126,7 +118,6 @@ export const generateReport = (rows: ProcessedRow[], type: ReportType): ReportRe
 
   // 2b. Special Handling for ORDER_COUNT (Distinct Doc IDs)
   if (type === ReportType.ORDER_COUNT) {
-    // New Map for Sets: { rowKey: { salesRep: Set<DocId>, _total: Set<DocId> } }
     const distinctMap = new Map<string, { [key: string]: Set<string> }>();
     
     filteredRows.forEach(row => {
@@ -146,7 +137,7 @@ export const generateReport = (rows: ProcessedRow[], type: ReportType): ReportRe
       districtEntry._total.add(row.docId);
     });
 
-    // Convert Sets to Numbers for final output
+    // Convert Sets to Numbers
     rowMap.clear();
     distinctMap.forEach((cols, rKey) => {
       const pivotEntry: PivotData = {
@@ -167,8 +158,7 @@ export const generateReport = (rows: ProcessedRow[], type: ReportType): ReportRe
   // 3. Convert Map to Array and Sort
   const data = Array.from(rowMap.values()).sort((a, b) => a.rowLabel!.localeCompare(b.rowLabel!));
 
-  // 4. Calculate Grand Total (Column Totals are not explicitly required by PivotData struct but useful for footer)
-  // For simplicity, we just sum the row totals for the grand total bottom-right.
+  // 4. Calculate Grand Total
   const grandTotal = data.reduce((acc, curr) => acc + curr.total, 0);
 
   return {
@@ -176,4 +166,95 @@ export const generateReport = (rows: ProcessedRow[], type: ReportType): ReportRe
     data,
     grandTotal
   };
+};
+
+export const exportReportToExcel = (report: ReportResult, type: ReportType, filename: string) => {
+  const isProductList = type === ReportType.PRODUCT_LIST;
+  const wb = XLSX.utils.book_new();
+  const wsData: any[][] = [];
+
+  // Super Header Row
+  const superHeaderRow = [];
+  if (isProductList) {
+    // Title, Empty, Empty, Sales Rep Header
+    superHeaderRow.push("LISTA DE PRODUCTOS", "", "", "Nombre de empleado del departamento de ventas");
+  } else {
+    // Title, Sales Rep Header, Empty (for Total)
+    superHeaderRow.push(type === ReportType.ORDER_COUNT ? "CANTIDAD DE PEDIDOS" : "MONTOS NETOS");
+    superHeaderRow.push("CANAL / MAYORISTAS");
+  }
+  wsData.push(superHeaderRow);
+
+  // Main Header Row
+  const headerRow = [];
+  if (isProductList) {
+    headerRow.push("Número de artículo", "Descripción artículo/serv.", "Total general");
+    report.columns.forEach(col => headerRow.push(col));
+  } else {
+    headerRow.push("DISTRITO");
+    report.columns.forEach(col => headerRow.push(col));
+    headerRow.push("Total general");
+  }
+  wsData.push(headerRow);
+
+  // Data Rows
+  report.data.forEach(row => {
+    const rowData = [];
+    if (isProductList) {
+      rowData.push(row.rowKey);
+      rowData.push(row.rowLabel);
+      rowData.push(row.total);
+      report.columns.forEach(col => {
+        rowData.push(row.values[col] || 0);
+      });
+    } else {
+      rowData.push(row.rowLabel);
+      report.columns.forEach(col => {
+        rowData.push(row.values[col] || 0);
+      });
+      rowData.push(row.total);
+    }
+    wsData.push(rowData);
+  });
+
+  // Footer Row (Totals)
+  const colTotals: { [key: string]: number } = {};
+  report.columns.forEach(col => {
+    colTotals[col] = report.data.reduce((sum, r) => sum + (r.values[col] || 0), 0);
+  });
+
+  const footerRow = [];
+  if (isProductList) {
+    footerRow.push("TOTALES", "");
+    footerRow.push(report.grandTotal);
+    report.columns.forEach(col => footerRow.push(colTotals[col]));
+  } else {
+    footerRow.push("TOTALES");
+    report.columns.forEach(col => footerRow.push(colTotals[col]));
+    footerRow.push(report.grandTotal);
+  }
+  wsData.push(footerRow);
+
+  // Create Sheet
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Add Merges for Super Header
+  if (!ws['!merges']) ws['!merges'] = [];
+  
+  if (isProductList) {
+    // Title merge (A1:B1)
+    ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }); 
+    // Reps header merge (Starts at D1)
+    if (report.columns.length > 0) {
+      ws['!merges'].push({ s: { r: 0, c: 3 }, e: { r: 0, c: 3 + report.columns.length - 1 } });
+    }
+  } else {
+    // Reps header merge (Starts at B1)
+    if (report.columns.length > 0) {
+      ws['!merges'].push({ s: { r: 0, c: 1 }, e: { r: 0, c: 1 + report.columns.length - 1 } });
+    }
+  }
+
+  XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+  XLSX.writeFile(wb, filename);
 };

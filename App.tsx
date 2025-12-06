@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { FileUpload } from './components/FileUpload';
 import { PivotTable } from './components/PivotTable';
-import { parseExcel, generateReport } from './utils/dataProcessor';
+import { parseExcel, generateReport, exportReportToExcel } from './utils/dataProcessor';
 import { ProcessedRow, ReportType } from './types';
 import { BarChart3, Calculator, ShoppingCart, ShieldCheck, FileSpreadsheet } from 'lucide-react';
 
@@ -32,6 +32,13 @@ function App() {
     if (!rawData) return null;
     return generateReport(rawData, activeTab);
   }, [rawData, activeTab]);
+
+  const handleDownload = () => {
+    if (!report) return;
+    const dateStr = new Date().toISOString().split('T')[0];
+    const filename = `${tabs.find(t => t.id === activeTab)?.label || 'Reporte'}_${dateStr}.xlsx`;
+    exportReportToExcel(report, activeTab, filename);
+  };
 
   const tabs = [
     { id: ReportType.ORDER_COUNT, label: 'Cantidad de Pedidos', icon: BarChart3, desc: 'Conteo distintivo' },
@@ -116,12 +123,21 @@ function App() {
                 })}
               </div>
 
-              <button 
-                onClick={() => setRawData(null)}
-                className="mb-2 text-sm text-gray-500 hover:text-black font-medium px-3 py-1.5 border border-gray-200 hover:border-black rounded transition-all"
-              >
-                Cargar otro archivo
-              </button>
+              <div className="flex items-center gap-2 mb-2">
+                <button
+                  onClick={handleDownload}
+                  className="flex items-center gap-2 text-sm font-medium px-4 py-1.5 bg-[#1D6F42] text-white hover:bg-[#155230] rounded shadow-sm transition-all"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  Descargar Excel
+                </button>
+                <button 
+                  onClick={() => setRawData(null)}
+                  className="text-sm text-gray-500 hover:text-black font-medium px-3 py-1.5 border border-gray-200 hover:border-black rounded transition-all"
+                >
+                  Cargar otro archivo
+                </button>
+              </div>
             </div>
 
             {/* Content Area */}
