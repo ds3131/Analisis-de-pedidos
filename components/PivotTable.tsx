@@ -67,10 +67,19 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
         valB = b.values[sortConfig.key] || 0;
       }
 
-      if (valA < valB) {
+      // Numeric Sort
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
+      }
+
+      // String Sort (Safe handling)
+      const strA = String(valA).toLowerCase();
+      const strB = String(valB).toLowerCase();
+
+      if (strA < strB) {
         return sortConfig.direction === 'asc' ? -1 : 1;
       }
-      if (valA > valB) {
+      if (strA > strB) {
         return sortConfig.direction === 'asc' ? 1 : -1;
       }
       return 0;
@@ -80,7 +89,8 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
   // Helper to render sort icon
   const getSortIcon = (columnKey: string) => {
     if (!sortConfig || sortConfig.key !== columnKey) {
-      return <ArrowUpDown className="w-3 h-3 text-gray-300 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />;
+      // Show inactive icon (gray) instead of hiding it, so user knows it is sortable
+      return <ArrowUpDown className="w-3 h-3 text-gray-300 ml-1" />;
     }
     return sortConfig.direction === 'asc' 
       ? <ArrowUp className="w-3 h-3 text-black ml-1" />
@@ -90,6 +100,7 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
   // Common styling
   const cellBorder = "border-r border-b border-black";
   const headerBorder = "border-r border-black";
+  // Added min-h to header to ensure alignment
   const headerBaseClass = `py-3 px-4 font-bold border-b-2 border-black ${headerBorder} uppercase text-xs tracking-wider cursor-pointer select-none transition-colors hover:bg-gray-200 flex items-center justify-between group`;
 
   return (
@@ -126,10 +137,11 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
                   </th>
                   {/* Total moved here for Product List */}
                   <th 
-                    className={`${headerBaseClass} min-w-[100px] bg-gray-100 text-black text-right justify-end`}
+                    className={`${headerBaseClass} min-w-[100px] bg-gray-100 text-black`}
                     onClick={() => handleSort('__total__')}
                   >
-                    <div className="flex items-center gap-1">
+                     {/* Use w-full and justify-end to align right but keep flex for icon */}
+                    <div className="flex items-center justify-end w-full gap-1">
                        <span>Total</span>
                        {getSortIcon('__total__')}
                     </div>
@@ -148,10 +160,10 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
               {report.columns.map(col => (
                 <th 
                   key={col} 
-                  className={`${headerBaseClass} min-w-[150px] whitespace-nowrap text-right justify-end`}
+                  className={`${headerBaseClass} min-w-[150px] whitespace-nowrap`}
                   onClick={() => handleSort(col)}
                 >
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center justify-end w-full gap-1">
                     <span>{col}</span>
                     {getSortIcon(col)}
                   </div>
@@ -161,10 +173,10 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
               {/* Total at end for non-product lists */}
               {!isProductList && (
                 <th 
-                  className={`${headerBaseClass} min-w-[120px] text-right bg-gray-100 text-black sticky right-0 z-20 justify-end`}
+                  className={`${headerBaseClass} min-w-[120px] bg-gray-100 text-black sticky right-0 z-20`}
                   onClick={() => handleSort('__total__')}
                 >
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center justify-end w-full gap-1">
                     <span>Total</span>
                     {getSortIcon('__total__')}
                   </div>
