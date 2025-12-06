@@ -57,11 +57,16 @@ function App() {
             <span>Procesamiento Local</span>
           </div>
 
-          {rawData && (
-             <div className="text-xs font-mono text-gray-500 border-l border-gray-200 pl-4">
-                FILAS: <span className="font-bold text-black">{rawData.length}</span>
-             </div>
-          )}
+          <div className="flex items-center gap-4">
+             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hidden sm:block">
+                ELABORADO POR DANIEL SALAZAR
+             </span>
+             {rawData && (
+               <div className="text-xs font-mono text-gray-500 border-l border-gray-200 pl-4 hidden sm:block">
+                  FILAS: <span className="font-bold text-black">{rawData.length}</span>
+               </div>
+             )}
+          </div>
         </div>
       </header>
 
