@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Upload, FileSpreadsheet, AlertCircle } from 'lucide-react';
+import { Upload, FileSpreadsheet, AlertCircle, ShieldCheck } from 'lucide-react';
 
 interface FileUploadProps {
   onFileUpload: (file: File) => void;
@@ -69,6 +69,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, isLoading,
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Privacy Notice */}
+      <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-500 bg-slate-100/50 py-2 px-4 rounded-full max-w-fit mx-auto border border-slate-100">
+        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+        <span>Tus datos se procesan localmente en tu dispositivo. Nada se sube a internet.</span>
       </div>
 
       {error && (

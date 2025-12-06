@@ -3,7 +3,7 @@ import { FileUpload } from './components/FileUpload';
 import { PivotTable } from './components/PivotTable';
 import { parseExcel, generateReport } from './utils/dataProcessor';
 import { ProcessedRow, ReportType } from './types';
-import { BarChart3, Calculator, ShoppingCart, Download } from 'lucide-react';
+import { BarChart3, Calculator, ShoppingCart, Download, ShieldCheck } from 'lucide-react';
 
 function App() {
   const [rawData, setRawData] = useState<ProcessedRow[] | null>(null);
@@ -44,12 +44,21 @@ function App() {
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="bg-emerald-600 text-white p-1.5 rounded-lg">
-              <BarChart3 className="w-5 h-5" />
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="bg-emerald-600 text-white p-1.5 rounded-lg">
+                <BarChart3 className="w-5 h-5" />
+              </div>
+              <h1 className="text-xl font-bold text-slate-800 tracking-tight">Análisis de Pedidos por facturar</h1>
             </div>
-            <h1 className="text-xl font-bold text-slate-800 tracking-tight">Análisis de Pedidos por facturar</h1>
+            
+            {/* Privacy Badge */}
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-medium border border-emerald-100">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Privacidad: Procesamiento Local</span>
+            </div>
           </div>
+
           {rawData && (
              <div className="text-sm text-slate-500">
                 Registros cargados: <span className="font-semibold text-slate-800">{rawData.length}</span>
