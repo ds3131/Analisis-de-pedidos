@@ -47,19 +47,19 @@ function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-black pb-12">
+    <div className="min-h-screen bg-gray-50 text-slate-900 pb-12">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-black text-white p-1.5 rounded">
+            <div className="bg-blue-700 text-white p-1.5 rounded-lg shadow-sm">
               <BarChart3 className="w-5 h-5" />
             </div>
-            <h1 className="text-lg font-bold text-black tracking-tight uppercase">Análisis de Pedidos</h1>
+            <h1 className="text-lg font-bold text-slate-900 tracking-tight uppercase">Análisis de Pedidos</h1>
           </div>
           
-          {/* Privacy Badge - Monochrome */}
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-gray-50 text-gray-600 rounded-full text-xs font-medium border border-gray-200">
+          {/* Privacy Badge - Blue Theme */}
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-100">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Procesamiento Local</span>
           </div>
@@ -70,7 +70,7 @@ function App() {
              </span>
              {rawData && (
                <div className="text-xs font-mono text-gray-500 border-l border-gray-200 pl-4 hidden sm:block">
-                  FILAS: <span className="font-bold text-black">{rawData.length}</span>
+                  FILAS: <span className="font-bold text-slate-900">{rawData.length}</span>
                </div>
              )}
           </div>
@@ -83,8 +83,8 @@ function App() {
         {!rawData && (
           <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-10 max-w-lg">
-              <h2 className="text-3xl font-bold text-black mb-4 tracking-tight">Cargar Reporte</h2>
-              <p className="text-gray-600 text-lg font-light">
+              <h2 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight">Cargar Reporte</h2>
+              <p className="text-slate-500 text-lg font-light">
                 Sistema de análisis de pedidos por facturar. 
                 <br />Sube tu archivo Excel para generar el reporte financiero.
               </p>
@@ -99,7 +99,7 @@ function App() {
             
             {/* Action Bar */}
             <div className="flex flex-col sm:flex-row justify-between items-end border-b border-gray-200 pb-1 gap-4">
-               {/* Professional Tabs */}
+               {/* Professional Tabs - Blue Theme */}
               <div className="flex space-x-6">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
@@ -111,12 +111,12 @@ function App() {
                       className={`
                         group flex items-center gap-2 pb-3 text-sm font-medium transition-all duration-200 border-b-2
                         ${isActive 
-                          ? 'border-black text-black' 
-                          : 'border-transparent text-gray-500 hover:text-black hover:border-gray-300'
+                          ? 'border-blue-600 text-blue-700' 
+                          : 'border-transparent text-gray-500 hover:text-blue-600 hover:border-blue-200'
                         }
                       `}
                     >
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-black' : 'text-gray-400 group-hover:text-gray-600'}`} />
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-blue-700' : 'text-gray-400 group-hover:text-blue-500'}`} />
                       <span>{tab.label}</span>
                     </button>
                   );
@@ -133,7 +133,7 @@ function App() {
                 </button>
                 <button 
                   onClick={() => setRawData(null)}
-                  className="text-sm text-gray-500 hover:text-black font-medium px-3 py-1.5 border border-gray-200 hover:border-black rounded transition-all"
+                  className="text-sm text-gray-500 hover:text-blue-700 font-medium px-3 py-1.5 border border-gray-200 hover:border-blue-300 bg-white rounded transition-all shadow-sm hover:shadow"
                 >
                   Cargar otro archivo
                 </button>
@@ -141,7 +141,7 @@ function App() {
             </div>
 
             {/* Content Area */}
-            <div className="h-[70vh] min-h-[500px]">
+            <div className="h-[70vh] min-h-[500px] bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               {report && (
                 <PivotTable 
                   report={report} 
@@ -153,16 +153,16 @@ function App() {
 
             {/* Instructions / Footer - Corporate Style */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-gray-600 mt-8">
-              <div className="bg-gray-50 p-4 border border-gray-100">
-                <strong className="block text-black uppercase tracking-wider mb-1 text-[10px]">Filtro de Estado</strong>
+              <div className="bg-white p-4 border border-blue-100 rounded-lg shadow-sm">
+                <strong className="block text-blue-800 uppercase tracking-wider mb-1 text-[10px]">Filtro de Estado</strong>
                 Exclusión automática de documentos marcados como "Cerrado".
               </div>
-              <div className="bg-gray-50 p-4 border border-gray-100">
-                <strong className="block text-black uppercase tracking-wider mb-1 text-[10px]">Segmentación</strong>
+              <div className="bg-white p-4 border border-blue-100 rounded-lg shadow-sm">
+                <strong className="block text-blue-800 uppercase tracking-wider mb-1 text-[10px]">Segmentación</strong>
                 Grupos permitidos: Mayoristas B, C, D, E.
               </div>
-              <div className="bg-gray-50 p-4 border border-gray-100">
-                <strong className="block text-black uppercase tracking-wider mb-1 text-[10px]">Fórmulas</strong>
+              <div className="bg-white p-4 border border-blue-100 rounded-lg shadow-sm">
+                <strong className="block text-blue-800 uppercase tracking-wider mb-1 text-[10px]">Fórmulas</strong>
                 Monto Neto calculado dividiendo el Total entre 1.18.
               </div>
             </div>

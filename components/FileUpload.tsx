@@ -32,10 +32,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, isLoading,
   return (
     <div className="w-full max-w-xl mx-auto mb-8">
       <div
-        className={`relative border border-dashed rounded-none p-10 transition-all duration-300 ease-in-out text-center group
+        className={`relative border border-dashed rounded-lg p-10 transition-all duration-300 ease-in-out text-center group
           ${isLoading 
             ? 'bg-gray-50 border-gray-300 cursor-wait' 
-            : 'bg-white border-gray-400 hover:border-black hover:bg-gray-50 cursor-pointer'}
+            : 'bg-white border-gray-300 hover:border-blue-500 hover:bg-blue-50/30 cursor-pointer shadow-sm hover:shadow-md'}
         `}
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
@@ -51,7 +51,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, isLoading,
         />
         
         <div className="flex flex-col items-center justify-center space-y-5">
-          <div className={`p-4 rounded-full border ${isLoading ? 'bg-gray-50 border-gray-200 text-gray-400' : 'bg-white border-gray-200 text-black group-hover:bg-black group-hover:text-white group-hover:border-black transition-colors'}`}>
+          <div className={`p-4 rounded-full border ${isLoading ? 'bg-gray-50 border-gray-200 text-gray-400' : 'bg-blue-50 border-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-colors'}`}>
             {isLoading ? (
               <svg className="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -63,7 +63,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, isLoading,
           </div>
           
           <div className="space-y-1">
-            <h3 className="text-base font-semibold text-black uppercase tracking-wide">
+            <h3 className={`text-base font-semibold uppercase tracking-wide transition-colors ${isLoading ? 'text-gray-500' : 'text-slate-700 group-hover:text-blue-700'}`}>
               {isLoading ? 'Procesando...' : 'Seleccionar Archivo'}
             </h3>
             <p className="text-sm text-gray-500 font-light">
@@ -75,12 +75,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload, isLoading,
 
       {/* Privacy Notice */}
       <div className="mt-6 flex items-center justify-center gap-2 text-[10px] uppercase tracking-wider text-gray-400">
-        <ShieldCheck className="w-3 h-3" />
+        <ShieldCheck className="w-3 h-3 text-blue-400" />
         <span>Datos seguros • Procesamiento 100% Local</span>
       </div>
 
       {error && (
-        <div className="mt-6 p-4 bg-white border-l-4 border-red-600 shadow-sm flex items-start gap-3 text-red-900 animate-in fade-in slide-in-from-top-2">
+        <div className="mt-6 p-4 bg-white border-l-4 border-red-600 shadow-sm flex items-start gap-3 text-red-900 animate-in fade-in slide-in-from-top-2 rounded-r">
           <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <p className="text-sm font-medium">{error}</p>
         </div>
