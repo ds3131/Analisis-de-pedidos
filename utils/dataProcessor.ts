@@ -172,8 +172,6 @@ export const generateReport = (rows: ProcessedRow[], type: ReportType): ReportRe
 };
 
 export const exportReportToExcel = (report: ReportResult, type: ReportType, filename: string) => {
-  // If it's client search, we shouldn't use this function, or we should handle it separately.
-  // For now, this function supports the Pivot Table exports.
   const isProductList = type === ReportType.PRODUCT_LIST;
   const wb = XLSX.utils.book_new();
   const wsData: any[][] = [];
@@ -261,5 +259,46 @@ export const exportReportToExcel = (report: ReportResult, type: ReportType, file
   }
 
   XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+  XLSX.writeFile(wb, filename);
+};
+
+export const exportClientSearchToExcel = (rows: ProcessedRow[], filename: string) => {
+  const wb = XLSX.utils.book_new();
+  const wsData: any[][] = [];
+
+  // Headers matching the table
+  wsData.push([
+    "Número de artículo",
+    "Descripción artículo/serv.",
+    "Cantidad",
+    "Condado",
+    "Destino",
+    "Cliente"
+  ]);
+
+  rows.forEach(row => {
+    wsData.push([
+      row.itemId,
+      row.itemDesc,
+      row.quantity,
+      row.district,
+      row.destination,
+      row.clientName
+    ]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  
+  // Set column widths
+  ws['!cols'] = [
+    { wch: 15 }, // ItemId
+    { wch: 40 }, // Desc
+    { wch: 10 }, // Qty
+    { wch: 15 }, // District
+    { wch: 20 }, // Destination
+    { wch: 30 }, // Client
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, "Búsqueda Clientes");
   XLSX.writeFile(wb, filename);
 };

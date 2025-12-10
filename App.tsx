@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { FileUpload } from './components/FileUpload';
 import { PivotTable } from './components/PivotTable';
 import { ClientSearch } from './components/ClientSearch';
-import { parseExcel, generateReport, exportReportToExcel } from './utils/dataProcessor';
+import { parseExcel, generateReport, exportReportToExcel, exportClientSearchToExcel } from './utils/dataProcessor';
 import { ProcessedRow, ReportType } from './types';
 import { BarChart3, Calculator, ShoppingCart, ShieldCheck, FileSpreadsheet, Search } from 'lucide-react';
 
@@ -12,6 +12,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ReportType>(ReportType.ORDER_COUNT);
+  const [clientSearchTerm, setClientSearchTerm] = useState('');
 
   const handleFileUpload = async (file: File) => {
     setLoading(true);
@@ -36,12 +37,32 @@ function App() {
   }, [rawData, activeTab]);
 
   const handleDownload = () => {
+    const dateStr = new Date().toISOString().split('T')[0];
+    
     if (activeTab === ReportType.CLIENT_SEARCH) {
-      alert("La descarga no está disponible para la búsqueda por cliente en este momento.");
+      if (!rawData) return;
+      // Filter here to export exactly what the user is seeing or searching for
+      // If search is empty, we export nothing (consistent with UI)
+      if (!clientSearchTerm.trim()) {
+        alert("Por favor realice una búsqueda primero para descargar los resultados.");
+        return;
+      }
+      
+      const filteredData = rawData.filter(row => 
+        row.clientName.toLowerCase().includes(clientSearchTerm.toLowerCase())
+      );
+
+      if (filteredData.length === 0) {
+        alert("No hay datos para exportar con la búsqueda actual.");
+        return;
+      }
+
+      const filename = `Busqueda_Cliente_${dateStr}.xlsx`;
+      exportClientSearchToExcel(filteredData, filename);
       return;
     }
+
     if (!report) return;
-    const dateStr = new Date().toISOString().split('T')[0];
     const filename = `${tabs.find(t => t.id === activeTab)?.label || 'Reporte'}_${dateStr}.xlsx`;
     exportReportToExcel(report, activeTab, filename);
   };
@@ -131,15 +152,13 @@ function App() {
               </div>
 
               <div className="flex items-center gap-3 mb-2 flex-shrink-0">
-                {activeTab !== ReportType.CLIENT_SEARCH && (
-                  <button
-                    onClick={handleDownload}
-                    className="flex items-center gap-2 text-sm font-semibold px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg shadow-sm transition-all active:scale-95"
-                  >
-                    <FileSpreadsheet className="w-4 h-4" />
-                    Descargar Excel
-                  </button>
-                )}
+                <button
+                  onClick={handleDownload}
+                  className="flex items-center gap-2 text-sm font-semibold px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg shadow-sm transition-all active:scale-95"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  Descargar Excel
+                </button>
                 <button 
                   onClick={() => setRawData(null)}
                   className="text-sm text-gray-600 hover:text-blue-700 font-medium px-4 py-2 border border-gray-300 hover:border-blue-400 bg-white rounded-lg transition-all shadow-sm hover:shadow active:scale-95"
@@ -152,7 +171,11 @@ function App() {
             {/* Content Area */}
             <div className="h-[70vh] min-h-[500px] bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden ring-1 ring-black/5">
               {activeTab === ReportType.CLIENT_SEARCH ? (
-                 <ClientSearch data={rawData} />
+                 <ClientSearch 
+                   data={rawData} 
+                   searchTerm={clientSearchTerm}
+                   onSearchChange={setClientSearchTerm}
+                 />
               ) : (
                 report && (
                   <PivotTable 
