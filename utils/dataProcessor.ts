@@ -111,11 +111,12 @@ export const generateReport = (rows: ProcessedRow[], type: ReportType): ReportRe
     if (type === ReportType.ORDER_COUNT) {
       // DISTINCT COUNT of DocID handled in step 2b
     } else if (type === ReportType.NET_AMOUNT) {
-      // Logic Update: Only add the document total ONCE per Document ID.
-      // Even if the document has 3 lines (rows), we only sum the total once.
+      // Only sum the Total Document Amount ONCE per Document ID.
+      // If a document has multiple lines, subsequent lines for the same ID are ignored for the sum.
       if (!processedNetDocs.has(row.docId)) {
         processedNetDocs.add(row.docId);
         
+        // Sum the Total Amount first (unique per doc), then divide by 1.18
         const netVal = row.totalAmount / 1.18;
         entry.values[row.salesRep] = (entry.values[row.salesRep] || 0) + netVal;
         entry.total += netVal;
@@ -229,6 +230,7 @@ export const exportReportToExcel = (report: ReportResult, type: ReportType, file
   });
 
   // Footer Row (Totals) - Only for non-product lists
+  // This ensures the "TOTALES" row is removed for Product List
   if (!isProductList) {
     const colTotals: { [key: string]: number } = {};
     report.columns.forEach(col => {
@@ -271,7 +273,7 @@ export const exportClientSearchToExcel = (rows: ProcessedRow[], filename: string
   const wb = XLSX.utils.book_new();
   const wsData: any[][] = [];
 
-  // Headers matching the table
+  // Headers matching the table - Client Name first
   wsData.push([
     "Nombre de cliente/proveedor",
     "Número de artículo",

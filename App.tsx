@@ -199,7 +199,7 @@ function App() {
               </div>
               <div className="bg-gray-50 p-4 border border-gray-200 rounded-lg">
                 <strong className="block text-blue-700 uppercase tracking-wider mb-1 text-[10px]">Fórmulas</strong>
-                Monto Neto: Suma única del Total de Documento por ID (sin duplicados de líneas), entre 1.18.
+                Monto Neto: Suma única del Total de Documento por ID (sin duplicados de líneas), luego dividido entre 1.18.
               </div>
             </div>
           </div>

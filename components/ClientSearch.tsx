@@ -100,7 +100,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ data, searchTerm, on
   }, [handleMouseMove]);
 
 
-  // Columns Definition
+  // Columns Definition - Client Name First
   const columns: { key: keyof ProcessedRow; label: string; widthKey: string }[] = [
     { key: 'clientName', label: 'Nombre de cliente/proveedor', widthKey: 'clientName' },
     { key: 'itemId', label: 'Número de artículo', widthKey: 'itemId' },
