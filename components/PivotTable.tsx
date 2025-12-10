@@ -228,37 +228,29 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
             ))}
           </tbody>
           
-          {/* Footer Totals */}
-          <tfoot className="sticky bottom-0 z-20 font-bold bg-[#CFE2F3] text-black shadow-[0_-1px_0_0_rgba(0,0,0,1)]">
-            <tr>
-              <td 
-                colSpan={isProductList ? 2 : 1} 
-                className={`p-2 ${borderStyle} uppercase text-xs tracking-wider`}
-              >
-                Totales
-              </td>
+          {/* Footer Totals - Only show if NOT Product List */}
+          {!isProductList && (
+            <tfoot className="sticky bottom-0 z-20 font-bold bg-[#CFE2F3] text-black shadow-[0_-1px_0_0_rgba(0,0,0,1)]">
+              <tr>
+                <td 
+                  colSpan={1} 
+                  className={`p-2 ${borderStyle} uppercase text-xs tracking-wider`}
+                >
+                  Totales
+                </td>
 
-               {/* Grand Total here for Product List */}
-               {isProductList && (
+                {report.columns.map(col => (
+                  <td key={col} className={`p-2 ${borderStyle} text-right font-mono text-xs tabular-nums`}>
+                    {formatValue(colTotals[col])}
+                  </td>
+                ))}
+
                 <td className={`p-2 text-right ${borderStyle} font-mono text-xs tabular-nums`}>
                   {formatValue(report.grandTotal)}
                 </td>
-              )}
-
-              {report.columns.map(col => (
-                <td key={col} className={`p-2 ${borderStyle} text-right font-mono text-xs tabular-nums`}>
-                  {formatValue(colTotals[col])}
-                </td>
-              ))}
-
-              {/* Grand Total at end for non-product lists */}
-              {!isProductList && (
-                <td className={`p-2 text-right ${borderStyle} font-mono text-xs tabular-nums`}>
-                  {formatValue(report.grandTotal)}
-                </td>
-              )}
-            </tr>
-          </tfoot>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
     </div>

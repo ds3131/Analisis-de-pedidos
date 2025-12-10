@@ -1,4 +1,3 @@
-
 import * as XLSX from 'xlsx';
 import { ProcessedRow, ReportResult, ReportType, PivotData } from '../types';
 
@@ -228,23 +227,20 @@ export const exportReportToExcel = (report: ReportResult, type: ReportType, file
     wsData.push(rowData);
   });
 
-  // Footer Row (Totals)
-  const colTotals: { [key: string]: number } = {};
-  report.columns.forEach(col => {
-    colTotals[col] = report.data.reduce((sum, r) => sum + (r.values[col] || 0), 0);
-  });
+  // Footer Row (Totals) - Only for non-product lists
+  if (!isProductList) {
+    const colTotals: { [key: string]: number } = {};
+    report.columns.forEach(col => {
+      colTotals[col] = report.data.reduce((sum, r) => sum + (r.values[col] || 0), 0);
+    });
 
-  const footerRow = [];
-  if (isProductList) {
-    footerRow.push("TOTALES", "");
-    footerRow.push(report.grandTotal);
-    report.columns.forEach(col => footerRow.push(colTotals[col]));
-  } else {
+    const footerRow = [];
     footerRow.push("TOTALES");
     report.columns.forEach(col => footerRow.push(colTotals[col]));
     footerRow.push(report.grandTotal);
+    
+    wsData.push(footerRow);
   }
-  wsData.push(footerRow);
 
   // Create Sheet
   const ws = XLSX.utils.aoa_to_sheet(wsData);
