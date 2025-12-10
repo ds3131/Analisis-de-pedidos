@@ -20,12 +20,12 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ data, searchTerm, on
 
   // Column Resizing State
   const [columnWidths, setColumnWidths] = useState<{ [key: string]: number }>({
+    clientName: 200,
     itemId: 150,
     itemDesc: 350,
     quantity: 100,
     district: 150,
     destination: 200,
-    clientName: 200,
   });
   const resizingRef = useRef<{ isResizing: boolean; startX: number; startWidth: number; column: string | null }>({
     isResizing: false,
@@ -102,6 +102,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ data, searchTerm, on
 
   // Columns Definition
   const columns: { key: keyof ProcessedRow; label: string; widthKey: string }[] = [
+    { key: 'clientName', label: 'Nombre de cliente/proveedor', widthKey: 'clientName' },
     { key: 'itemId', label: 'Número de artículo', widthKey: 'itemId' },
     { key: 'itemDesc', label: 'Descripción artículo/serv.', widthKey: 'itemDesc' },
     { key: 'quantity', label: 'Cantidad', widthKey: 'quantity' },
@@ -173,6 +174,9 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ data, searchTerm, on
                 {sortedData.length > 0 ? (
                   sortedData.map((row, idx) => (
                     <tr key={`${row.docId}-${idx}`} className="hover:bg-blue-50 transition-colors">
+                      <td className="p-2 border border-black text-gray-900 text-xs truncate">
+                        {row.clientName}
+                      </td>
                       <td className="p-2 border border-black font-mono text-xs text-gray-900 truncate">
                         {row.itemId}
                       </td>

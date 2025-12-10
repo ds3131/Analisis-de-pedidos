@@ -1,3 +1,4 @@
+
 import * as XLSX from 'xlsx';
 import { ProcessedRow, ReportResult, ReportType, PivotData } from '../types';
 
@@ -272,22 +273,22 @@ export const exportClientSearchToExcel = (rows: ProcessedRow[], filename: string
 
   // Headers matching the table
   wsData.push([
+    "Nombre de cliente/proveedor",
     "Número de artículo",
     "Descripción artículo/serv.",
     "Cantidad",
     "Condado",
-    "Destino",
-    "Cliente"
+    "Destino"
   ]);
 
   rows.forEach(row => {
     wsData.push([
+      row.clientName,
       row.itemId,
       row.itemDesc,
       row.quantity,
       row.district,
-      row.destination,
-      row.clientName
+      row.destination
     ]);
   });
 
@@ -295,12 +296,12 @@ export const exportClientSearchToExcel = (rows: ProcessedRow[], filename: string
   
   // Set column widths
   ws['!cols'] = [
+    { wch: 30 }, // Client
     { wch: 15 }, // ItemId
     { wch: 40 }, // Desc
     { wch: 10 }, // Qty
     { wch: 15 }, // District
     { wch: 20 }, // Destination
-    { wch: 30 }, // Client
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, "Búsqueda Clientes");
