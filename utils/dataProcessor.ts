@@ -1,3 +1,4 @@
+
 import * as XLSX from 'xlsx';
 import { ProcessedRow, ReportResult, ReportType, PivotData } from '../types';
 
@@ -30,7 +31,9 @@ const processRawData = (data: any[]): ProcessedRow[] => {
       totalAmount: Number(getVal(['Total del documento', 'Total Documento', 'Total'], 0)),
       itemId: String(getVal(['Número de artículo', 'Numero de articulo', 'Item No', 'Articulo'], '')),
       itemDesc: String(getVal(['Descripción artículo/serv.', 'Descripcion', 'Description'], '')),
-      quantity: Number(getVal(['Cantidad', 'Qty', 'Unidades'], 1)), // Default to 1 if not found, though usually explicit
+      quantity: Number(getVal(['Cantidad', 'Qty', 'Unidades'], 1)),
+      clientName: String(getVal(['Nombre de cliente/proveedor', 'Nombre de cliente', 'CardName', 'Cliente'], 'Cliente Desconocido')),
+      destination: String(getVal(['Destino', 'ShipToCode', 'Dirección de destino', 'Direccion'], '')),
     };
   });
 };
@@ -169,6 +172,8 @@ export const generateReport = (rows: ProcessedRow[], type: ReportType): ReportRe
 };
 
 export const exportReportToExcel = (report: ReportResult, type: ReportType, filename: string) => {
+  // If it's client search, we shouldn't use this function, or we should handle it separately.
+  // For now, this function supports the Pivot Table exports.
   const isProductList = type === ReportType.PRODUCT_LIST;
   const wb = XLSX.utils.book_new();
   const wsData: any[][] = [];

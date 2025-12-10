@@ -1,3 +1,4 @@
+
 export interface RawRow {
   [key: string]: any;
 }
@@ -12,6 +13,8 @@ export interface ProcessedRow {
   itemId: string;
   itemDesc: string;
   quantity: number;
+  clientName: string; // Nombre de cliente/proveedor
+  destination: string; // Destino
 }
 
 export interface PivotData {
@@ -33,4 +36,5 @@ export enum ReportType {
   ORDER_COUNT = 'ORDER_COUNT',
   NET_AMOUNT = 'NET_AMOUNT',
   PRODUCT_LIST = 'PRODUCT_LIST',
+  CLIENT_SEARCH = 'CLIENT_SEARCH',
 }

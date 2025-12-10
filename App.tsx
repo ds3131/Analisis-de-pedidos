@@ -1,9 +1,11 @@
+
 import React, { useState, useMemo } from 'react';
 import { FileUpload } from './components/FileUpload';
 import { PivotTable } from './components/PivotTable';
+import { ClientSearch } from './components/ClientSearch';
 import { parseExcel, generateReport, exportReportToExcel } from './utils/dataProcessor';
 import { ProcessedRow, ReportType } from './types';
-import { BarChart3, Calculator, ShoppingCart, ShieldCheck, FileSpreadsheet } from 'lucide-react';
+import { BarChart3, Calculator, ShoppingCart, ShieldCheck, FileSpreadsheet, Search } from 'lucide-react';
 
 function App() {
   const [rawData, setRawData] = useState<ProcessedRow[] | null>(null);
@@ -29,11 +31,15 @@ function App() {
   };
 
   const report = useMemo(() => {
-    if (!rawData) return null;
+    if (!rawData || activeTab === ReportType.CLIENT_SEARCH) return null;
     return generateReport(rawData, activeTab);
   }, [rawData, activeTab]);
 
   const handleDownload = () => {
+    if (activeTab === ReportType.CLIENT_SEARCH) {
+      alert("La descarga no está disponible para la búsqueda por cliente en este momento.");
+      return;
+    }
     if (!report) return;
     const dateStr = new Date().toISOString().split('T')[0];
     const filename = `${tabs.find(t => t.id === activeTab)?.label || 'Reporte'}_${dateStr}.xlsx`;
@@ -44,6 +50,7 @@ function App() {
     { id: ReportType.ORDER_COUNT, label: 'Cantidad de Pedidos', icon: BarChart3, desc: 'Conteo distintivo' },
     { id: ReportType.NET_AMOUNT, label: 'Montos Netos', icon: Calculator, desc: 'Total / 1.18' },
     { id: ReportType.PRODUCT_LIST, label: 'Lista de Productos', icon: ShoppingCart, desc: 'Detalle Items' },
+    { id: ReportType.CLIENT_SEARCH, label: 'Búsqueda por Cliente', icon: Search, desc: 'Buscar Item y Destino' },
   ];
 
   return (
@@ -100,7 +107,7 @@ function App() {
             {/* Action Bar */}
             <div className="flex flex-col sm:flex-row justify-between items-end border-b border-gray-200 pb-1 gap-4">
                {/* Professional Tabs - Blue Theme */}
-              <div className="flex space-x-8">
+              <div className="flex space-x-8 overflow-x-auto pb-1 sm:pb-0 w-full sm:w-auto">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.id;
@@ -109,7 +116,7 @@ function App() {
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
                       className={`
-                        group flex items-center gap-2 pb-3 text-sm font-semibold transition-all duration-200 border-b-[3px]
+                        group flex items-center gap-2 pb-3 text-sm font-semibold transition-all duration-200 border-b-[3px] whitespace-nowrap
                         ${isActive 
                           ? 'border-blue-600 text-blue-600' 
                           : 'border-transparent text-gray-500 hover:text-blue-600 hover:border-blue-200'
@@ -123,14 +130,16 @@ function App() {
                 })}
               </div>
 
-              <div className="flex items-center gap-3 mb-2">
-                <button
-                  onClick={handleDownload}
-                  className="flex items-center gap-2 text-sm font-semibold px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg shadow-sm transition-all active:scale-95"
-                >
-                  <FileSpreadsheet className="w-4 h-4" />
-                  Descargar Excel
-                </button>
+              <div className="flex items-center gap-3 mb-2 flex-shrink-0">
+                {activeTab !== ReportType.CLIENT_SEARCH && (
+                  <button
+                    onClick={handleDownload}
+                    className="flex items-center gap-2 text-sm font-semibold px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg shadow-sm transition-all active:scale-95"
+                  >
+                    <FileSpreadsheet className="w-4 h-4" />
+                    Descargar Excel
+                  </button>
+                )}
                 <button 
                   onClick={() => setRawData(null)}
                   className="text-sm text-gray-600 hover:text-blue-700 font-medium px-4 py-2 border border-gray-300 hover:border-blue-400 bg-white rounded-lg transition-all shadow-sm hover:shadow active:scale-95"
@@ -142,12 +151,16 @@ function App() {
 
             {/* Content Area */}
             <div className="h-[70vh] min-h-[500px] bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden ring-1 ring-black/5">
-              {report && (
-                <PivotTable 
-                  report={report} 
-                  type={activeTab} 
-                  title={tabs.find(t => t.id === activeTab)?.label || 'Reporte'}
-                />
+              {activeTab === ReportType.CLIENT_SEARCH ? (
+                 <ClientSearch data={rawData} />
+              ) : (
+                report && (
+                  <PivotTable 
+                    report={report} 
+                    type={activeTab} 
+                    title={tabs.find(t => t.id === activeTab)?.label || 'Reporte'}
+                  />
+                )
               )}
             </div>
 
