@@ -69,7 +69,7 @@ function App() {
 
   const tabs = [
     { id: ReportType.ORDER_COUNT, label: 'Cantidad de Pedidos', icon: BarChart3, desc: 'Conteo distintivo' },
-    { id: ReportType.NET_AMOUNT, label: 'Montos Netos', icon: Calculator, desc: 'Total / 1.18' },
+    { id: ReportType.NET_AMOUNT, label: 'Montos Netos', icon: Calculator, desc: 'Total Único / 1.18' },
     { id: ReportType.PRODUCT_LIST, label: 'Lista de Productos', icon: ShoppingCart, desc: 'Detalle Items' },
     { id: ReportType.CLIENT_SEARCH, label: 'Búsqueda por Cliente', icon: Search, desc: 'Buscar Item y Destino' },
   ];
@@ -199,7 +199,7 @@ function App() {
               </div>
               <div className="bg-gray-50 p-4 border border-gray-200 rounded-lg">
                 <strong className="block text-blue-700 uppercase tracking-wider mb-1 text-[10px]">Fórmulas</strong>
-                Monto Neto calculado dividiendo el Total entre 1.18.
+                Monto Neto: Suma única del Total de Documento por ID (sin duplicados de líneas), entre 1.18.
               </div>
             </div>
           </div>

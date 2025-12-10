@@ -80,6 +80,9 @@ export const generateReport = (rows: ProcessedRow[], type: ReportType): ReportRe
 
   // 2. Aggregate Data
   const rowMap = new Map<string, PivotData>();
+  
+  // Helper set to track unique documents for NET_AMOUNT calculation
+  const processedNetDocs = new Set<string>();
 
   filteredRows.forEach(row => {
     let rowKey = '';
@@ -108,10 +111,15 @@ export const generateReport = (rows: ProcessedRow[], type: ReportType): ReportRe
     if (type === ReportType.ORDER_COUNT) {
       // DISTINCT COUNT of DocID handled in step 2b
     } else if (type === ReportType.NET_AMOUNT) {
-      // Sum Total / 1.18
-      const netVal = row.totalAmount / 1.18;
-      entry.values[row.salesRep] = (entry.values[row.salesRep] || 0) + netVal;
-      entry.total += netVal;
+      // Logic Update: Only add the document total ONCE per Document ID.
+      // Even if the document has 3 lines (rows), we only sum the total once.
+      if (!processedNetDocs.has(row.docId)) {
+        processedNetDocs.add(row.docId);
+        
+        const netVal = row.totalAmount / 1.18;
+        entry.values[row.salesRep] = (entry.values[row.salesRep] || 0) + netVal;
+        entry.total += netVal;
+      }
     } else if (type === ReportType.PRODUCT_LIST) {
       // Sum Quantity
       entry.values[row.salesRep] = (entry.values[row.salesRep] || 0) + row.quantity;
