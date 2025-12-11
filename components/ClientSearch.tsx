@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { ProcessedRow } from '../types';
 import { Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
@@ -102,7 +101,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ data, searchTerm, on
   }, [handleMouseMove]);
 
 
-  // Columns Definition - Respecting existing configuration
+  // Columns Definition - Client Name is first, followed by existing columns
   const columns: { key: keyof ProcessedRow; label: string; widthKey: string }[] = [
     { key: 'clientName', label: 'Nombre de cliente/proveedor', widthKey: 'clientName' },
     { key: 'itemId', label: 'Número de artículo', widthKey: 'itemId' },
