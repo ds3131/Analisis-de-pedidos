@@ -36,7 +36,9 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ data, searchTerm, on
 
   // Filter Data
   const filteredData = useMemo(() => {
-    if (!searchTerm.trim()) return [];
+    // Show all data if search is empty, otherwise filter
+    if (!searchTerm.trim()) return data;
+    
     const lowerTerm = searchTerm.toLowerCase();
     return data.filter(row => 
       row.clientName.toLowerCase().includes(lowerTerm)
@@ -100,7 +102,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ data, searchTerm, on
   }, [handleMouseMove]);
 
 
-  // Columns Definition - Client Name First
+  // Columns Definition - Respecting existing configuration
   const columns: { key: keyof ProcessedRow; label: string; widthKey: string }[] = [
     { key: 'clientName', label: 'Nombre de cliente/proveedor', widthKey: 'clientName' },
     { key: 'itemId', label: 'Número de artículo', widthKey: 'itemId' },
@@ -197,7 +199,7 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ data, searchTerm, on
                 ) : (
                   <tr>
                     <td colSpan={columns.length} className="p-8 text-center text-gray-500 italic">
-                      {searchTerm ? 'No se encontraron resultados para este cliente.' : 'Ingrese un nombre para comenzar la búsqueda.'}
+                      No se encontraron resultados.
                     </td>
                   </tr>
                 )}
@@ -205,11 +207,9 @@ export const ClientSearch: React.FC<ClientSearchProps> = ({ data, searchTerm, on
             </table>
         </div>
       </div>
-       {searchTerm && (
-        <div className="mt-2 text-xs text-gray-500 font-mono">
-           Resultados: <strong>{sortedData.length}</strong> registros encontrados.
-        </div>
-      )}
+       <div className="mt-2 text-xs text-gray-500 font-mono">
+           Mostrando: <strong>{sortedData.length}</strong> registros.
+       </div>
     </div>
   );
 };

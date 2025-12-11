@@ -41,16 +41,11 @@ function App() {
     
     if (activeTab === ReportType.CLIENT_SEARCH) {
       if (!rawData) return;
-      // Filter here to export exactly what the user is seeing or searching for
-      // If search is empty, we export nothing (consistent with UI)
-      if (!clientSearchTerm.trim()) {
-        alert("Por favor realice una búsqueda primero para descargar los resultados.");
-        return;
-      }
       
-      const filteredData = rawData.filter(row => 
-        row.clientName.toLowerCase().includes(clientSearchTerm.toLowerCase())
-      );
+      // Filter logic matches the component: if search is empty, export all
+      const filteredData = clientSearchTerm.trim() 
+        ? rawData.filter(row => row.clientName.toLowerCase().includes(clientSearchTerm.toLowerCase()))
+        : rawData;
 
       if (filteredData.length === 0) {
         alert("No hay datos para exportar con la búsqueda actual.");
