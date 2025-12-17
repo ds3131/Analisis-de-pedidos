@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { PivotData, ReportResult, ReportType } from '../types';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
@@ -22,6 +22,44 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
   
   // Sorting State
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
+
+  // Column Resizing State
+  const [columnWidths, setColumnWidths] = useState<{ [key: string]: number }>({});
+  const resizingRef = useRef<{ isResizing: boolean; startX: number; startWidth: number; column: string | null }>({
+    isResizing: false,
+    startX: 0,
+    startWidth: 0,
+    column: null,
+  });
+
+  // Initialize default widths
+  useEffect(() => {
+    setColumnWidths(prev => {
+        const newWidths = { ...prev };
+        let changed = false;
+
+        const setIfMissing = (key: string, val: number) => {
+            if (newWidths[key] === undefined) {
+                newWidths[key] = val;
+                changed = true;
+            }
+        }
+
+        if (isProductList) {
+            setIfMissing('rowKey', 120);   // Item Number
+            setIfMissing('rowLabel', 350); // Description
+            setIfMissing('total', 100);    // Total
+        } else {
+            setIfMissing('rowLabel', 200); // District
+            setIfMissing('total', 120);    // Total
+        }
+
+        report.columns.forEach(col => setIfMissing(col, 150)); // Sales Reps
+
+        return changed ? newWidths : prev;
+    });
+  }, [report, isProductList]);
+
 
   const formatValue = (val: number) => {
     if (val === 0 || val === undefined) return '-'; 
@@ -73,6 +111,41 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
     });
   }, [report.data, sortConfig]);
 
+  // Resize Handlers
+  const startResize = (e: React.MouseEvent, column: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    resizingRef.current = {
+      isResizing: true,
+      startX: e.clientX,
+      startWidth: columnWidths[column] || 100,
+      column,
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'col-resize';
+  };
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!resizingRef.current.isResizing || !resizingRef.current.column) return;
+    
+    const diff = e.clientX - resizingRef.current.startX;
+    const newWidth = Math.max(50, resizingRef.current.startWidth + diff); // Min width 50px
+    
+    setColumnWidths(prev => ({
+      ...prev,
+      [resizingRef.current.column!]: newWidth
+    }));
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    resizingRef.current = { isResizing: false, startX: 0, startWidth: 0, column: null };
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'default';
+  }, [handleMouseMove]);
+
+
   // Styles matching the Excel screenshots
   // Blue header background: #cfe2f3 (approx tailwind blue-100/200 mix)
   const headerBg = "bg-[#CFE2F3]"; 
@@ -90,10 +163,20 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
     );
   };
 
+  // Helper to render resizing handle
+  const Resizer = ({ columnKey }: { columnKey: string }) => (
+    <div 
+        className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize group-hover:bg-blue-400 z-10"
+        onMouseDown={(e) => startResize(e, columnKey)}
+        onClick={(e) => e.stopPropagation()} 
+    />
+  );
+
   return (
     <div className="bg-white p-4 overflow-hidden flex flex-col h-full">
       <div className="overflow-auto flex-1 custom-scrollbar pb-4">
-        <table className="w-full text-sm text-left border-collapse border border-black min-w-max">
+        {/* Changed to table-fixed to respect manual widths properly */}
+        <table className="text-sm text-left border-collapse border border-black table-fixed w-max">
           <thead className="sticky top-0 z-30 shadow-sm">
             {/* SUPER HEADER ROW - Grouping names like in screenshots */}
             <tr>
@@ -134,32 +217,52 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
             <tr>
               {isProductList ? (
                 <>
-                  <th className={`${headerCellStyles} min-w-[100px]`} onClick={() => handleSort('rowKey')}>
-                    <div className="flex items-center justify-between">
-                      Número de artículo
+                  <th 
+                    className={`${headerCellStyles}`} 
+                    style={{ width: columnWidths['rowKey'] }}
+                    onClick={() => handleSort('rowKey')}
+                  >
+                    <div className="flex items-center justify-between overflow-hidden">
+                      <span className="truncate">Número de artículo</span>
                       <SortIcon columnKey="rowKey" />
                     </div>
+                    <Resizer columnKey="rowKey" />
                   </th>
-                  <th className={`${headerCellStyles} min-w-[300px]`} onClick={() => handleSort('rowLabel')}>
-                    <div className="flex items-center justify-between">
-                      Descripción artículo/serv.
+                  <th 
+                    className={`${headerCellStyles}`} 
+                    style={{ width: columnWidths['rowLabel'] }}
+                    onClick={() => handleSort('rowLabel')}
+                  >
+                    <div className="flex items-center justify-between overflow-hidden">
+                      <span className="truncate">Descripción artículo/serv.</span>
                       <SortIcon columnKey="rowLabel" />
                     </div>
+                    <Resizer columnKey="rowLabel" />
                   </th>
                   {/* Total moved here for Product List */}
-                  <th className={`${headerCellStyles} min-w-[100px] text-right`} onClick={() => handleSort('total')}>
-                    <div className="flex items-center justify-end">
-                      Total general
+                  <th 
+                    className={`${headerCellStyles} text-right`} 
+                    style={{ width: columnWidths['total'] }}
+                    onClick={() => handleSort('total')}
+                  >
+                    <div className="flex items-center justify-end overflow-hidden">
+                      <span className="truncate">Total general</span>
                       <SortIcon columnKey="total" />
                     </div>
+                    <Resizer columnKey="total" />
                   </th>
                 </>
               ) : (
-                <th className={`${headerCellStyles} min-w-[200px]`} onClick={() => handleSort('rowLabel')}>
-                  <div className="flex items-center justify-between">
-                    DISTRITO
+                <th 
+                    className={`${headerCellStyles}`} 
+                    style={{ width: columnWidths['rowLabel'] }}
+                    onClick={() => handleSort('rowLabel')}
+                >
+                  <div className="flex items-center justify-between overflow-hidden">
+                    <span className="truncate">DISTRITO</span>
                     <SortIcon columnKey="rowLabel" />
                   </div>
+                  <Resizer columnKey="rowLabel" />
                 </th>
               )}
 
@@ -167,23 +270,30 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
               {report.columns.map(col => (
                 <th 
                   key={col} 
-                  className={`${headerCellStyles} min-w-[150px] text-right`}
+                  className={`${headerCellStyles} text-right`}
+                  style={{ width: columnWidths[col] }}
                   onClick={() => handleSort(col)}
                 >
-                  <div className="flex items-center justify-end truncate" title={col}>
-                    {col}
+                  <div className="flex items-center justify-end overflow-hidden" title={col}>
+                    <span className="truncate">{col}</span>
                     <SortIcon columnKey={col} />
                   </div>
+                  <Resizer columnKey={col} />
                 </th>
               ))}
               
               {/* Total at end for non-product lists */}
               {!isProductList && (
-                <th className={`${headerCellStyles} min-w-[120px] text-right`} onClick={() => handleSort('total')}>
-                  <div className="flex items-center justify-end">
-                    Total general
+                <th 
+                    className={`${headerCellStyles} text-right`} 
+                    style={{ width: columnWidths['total'] }}
+                    onClick={() => handleSort('total')}
+                >
+                  <div className="flex items-center justify-end overflow-hidden">
+                    <span className="truncate">Total general</span>
                     <SortIcon columnKey="total" />
                   </div>
+                  <Resizer columnKey="total" />
                 </th>
               )}
             </tr>
@@ -195,33 +305,33 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
                 {/* Row Keys */}
                 {isProductList ? (
                   <>
-                    <td className={`p-2 ${borderStyle} font-mono text-xs text-gray-900`}>
+                    <td className={`p-2 ${borderStyle} font-mono text-xs text-gray-900 truncate`}>
                       {row.rowKey}
                     </td>
-                    <td className={`p-2 ${borderStyle} text-gray-900 text-xs truncate max-w-xs`} title={row.rowLabel}>
+                    <td className={`p-2 ${borderStyle} text-gray-900 text-xs truncate`} title={row.rowLabel}>
                       {row.rowLabel}
                     </td>
                     {/* Total moved here for Product List */}
-                    <td className={`p-2 ${borderStyle} font-bold text-right text-black font-mono text-xs`}>
+                    <td className={`p-2 ${borderStyle} font-bold text-right text-black font-mono text-xs truncate`}>
                       {formatValue(row.total)}
                     </td>
                   </>
                 ) : (
-                  <td className={`p-2 ${borderStyle} font-medium text-gray-900 text-xs uppercase`}>
+                  <td className={`p-2 ${borderStyle} font-medium text-gray-900 text-xs uppercase truncate`}>
                     {row.rowLabel}
                   </td>
                 )}
 
                 {/* Values */}
                 {report.columns.map(col => (
-                  <td key={col} className={`p-2 ${borderStyle} text-right text-gray-800 font-mono text-xs tabular-nums`}>
+                  <td key={col} className={`p-2 ${borderStyle} text-right text-gray-800 font-mono text-xs tabular-nums truncate`}>
                     {formatValue(row.values[col])}
                   </td>
                 ))}
 
                 {/* Row Total at end for non-product lists */}
                 {!isProductList && (
-                  <td className={`p-2 ${borderStyle} font-bold text-right text-black font-mono text-xs`}>
+                  <td className={`p-2 ${borderStyle} font-bold text-right text-black font-mono text-xs truncate`}>
                     {formatValue(row.total)}
                   </td>
                 )}
@@ -235,18 +345,18 @@ export const PivotTable: React.FC<PivotTableProps> = ({ report, type, title }) =
               <tr>
                 <td 
                   colSpan={1} 
-                  className={`p-2 ${borderStyle} uppercase text-xs tracking-wider`}
+                  className={`p-2 ${borderStyle} uppercase text-xs tracking-wider truncate`}
                 >
                   Totales
                 </td>
 
                 {report.columns.map(col => (
-                  <td key={col} className={`p-2 ${borderStyle} text-right font-mono text-xs tabular-nums`}>
+                  <td key={col} className={`p-2 ${borderStyle} text-right font-mono text-xs tabular-nums truncate`}>
                     {formatValue(colTotals[col])}
                   </td>
                 ))}
 
-                <td className={`p-2 text-right ${borderStyle} font-mono text-xs tabular-nums`}>
+                <td className={`p-2 text-right ${borderStyle} font-mono text-xs tabular-nums truncate`}>
                   {formatValue(report.grandTotal)}
                 </td>
               </tr>
